@@ -1,1 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoanIQ | Smarter Loan Decisions with AI</title>
+<meta name="description" content="LoanIQ predicts loan approval outcomes with a trained decision tree model.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233B82F6'/%3E%3Cpath d='M16 7v6m0 0-6 5m6-5 6 5M10 18v7m12-7v7' stroke='white' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080D1A; --bg2:#101A2E; --blue:#3B82F6; --cyan:#22D3EE; --purple:#8B5CF6;
+  --ok:#10B981; --warn:#F59E0B; --bad:#EF4444; --text:#F8FAFC; --muted:#94A3B8;
+  --glass:rgba(255,255,255,.045); --line:rgba(148,163,184,.16);
+  --display:'Sora',system-ui,sans-serif; --body:'Manrope',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{background:var(--bg);color:var(--text);font:400 16px/1.6 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(900px 500px at 85% -5%,rgba(59,130,246,.18),transparent 60%),
+  radial-gradient(700px 500px at -5% 35%,rgba(139,92,246,.14),transparent 60%),
+  linear-gradient(180deg,var(--bg),#0A1224 60%,var(--bg))}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+section{padding:96px 0}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.02em;line-height:1.1}
+h2{font-size:clamp(28px,3.4vw,40px);margin-bottom:12px}
+.lead{color:var(--muted);max-width:56ch}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 24px 60px -28px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.05)}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(8,13,26,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:68px;gap:20px}
+.logo{display:flex;align-items:center;gap:10px;font:700 21px var(--display);letter-spacing:-.03em}
+.logo i{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--purple));box-shadow:0 0 22px rgba(59,130,246,.55)}
+.logo svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.3;stroke-linecap:round}
+.links{display:flex;gap:6px}
+.links a{padding:8px 16px;border-radius:999px;color:var(--muted);font-weight:600;font-size:14.5px;transition:color .2s,background .2s}
+.links a:hover{color:var(--text)}
+.links a.active{color:var(--text);background:rgba(59,130,246,.16);box-shadow:inset 0 0 0 1px rgba(59,130,246,.4)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;font:700 15.5px var(--body);color:#fff;padding:15px 28px;border-radius:14px;background:linear-gradient(120deg,var(--blue),var(--purple));box-shadow:0 10px 30px -8px rgba(59,130,246,.7);transition:transform .2s,box-shadow .2s,filter .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 16px 38px -8px rgba(59,130,246,.85)}
+.btn:disabled{opacity:.7;cursor:progress;transform:none}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--text)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 1px var(--cyan)}
+.nav-cta{padding:10px 20px;font-size:14px;border-radius:12px}
+
+/* hero */
+.hero{padding:84px 0 72px;position:relative}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.5;z-index:-1;animation:drift 18s ease-in-out infinite alternate}
+.orb.a{width:340px;height:340px;background:var(--blue);top:-40px;right:8%}
+.orb.b{width:280px;height:280px;background:var(--purple);bottom:-60px;left:30%;animation-delay:-6s}
+@keyframes drift{to{transform:translate(40px,-30px) scale(1.12)}}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+h1{font-size:clamp(42px,6.2vw,78px);font-weight:700;letter-spacing:-.04em;line-height:1.02;margin-bottom:24px}
+.hero p.lead{font-size:18.5px;margin-bottom:36px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.tree-card{padding:22px 22px 18px}
+.tree-card svg{width:100%;height:auto;display:block}
+.tree-card figcaption{color:var(--muted);font-size:13.5px;margin-top:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.edge{stroke:rgba(148,163,184,.25);stroke-width:1.6;fill:none;transition:stroke .5s,stroke-width .5s}
+.edge.on{stroke:var(--cyan);stroke-width:2.6;filter:drop-shadow(0 0 5px var(--cyan))}
+.node rect{fill:rgba(16,26,46,.9);stroke:rgba(148,163,184,.3);stroke-width:1.2;transition:all .5s}
+.node text{fill:var(--muted);font:600 11.5px var(--body);text-anchor:middle;dominant-baseline:central;transition:fill .5s}
+.node.on rect{stroke:var(--blue);fill:rgba(59,130,246,.2);filter:drop-shadow(0 0 8px rgba(59,130,246,.7))}
+.node.on text{fill:var(--text)}
+.leaf circle{fill:rgba(148,163,184,.18);stroke:rgba(148,163,184,.3);transition:all .5s}
+.leaf.on.yes circle{fill:var(--ok);stroke:var(--ok);filter:drop-shadow(0 0 9px var(--ok))}
+.leaf.on.no circle{fill:var(--bad);stroke:var(--bad);filter:drop-shadow(0 0 9px var(--bad))}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.dot.yes{background:var(--ok)}.dot.no{background:var(--bad)}
+
+/* stats */
+.stats{padding:0 0 24px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.stat{padding:22px 24px;display:flex;gap:16px;align-items:center}
+.stat .ic{flex:none;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:rgba(34,211,238,.1);box-shadow:inset 0 0 0 1px rgba(34,211,238,.25)}
+.stat svg{width:21px;height:21px;stroke:var(--cyan);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.stat b{display:block;font:700 22px var(--display);letter-spacing:-.02em;line-height:1.2}
+.stat span{color:var(--muted);font-size:13.5px}
+.live{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:8px;animation:pulse 2s infinite}
+.live.off{background:var(--bad);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}70%,100%{box-shadow:0 0 0 10px transparent}}
+
+/* predict */
+.predict-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:28px;margin-top:44px;align-items:start}
+form.glass{padding:34px}
+fieldset{border:0;padding:0;margin:0 0 30px}
+legend{font:600 17px var(--display);margin-bottom:16px;padding:0;display:flex;align-items:center;gap:12px;width:100%}
+legend::after{content:"";height:1px;flex:1;background:var(--line)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+.field label{display:block;font-weight:600;font-size:14px;margin-bottom:7px}
+.ctl{position:relative}
+.ctl svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;transition:stroke .2s}
+.ctl input,.ctl select{width:100%;height:50px;padding:0 14px 0 44px;color:var(--text);font:500 15px var(--body);background:rgba(8,13,26,.55);border:1px solid var(--line);border-radius:13px;transition:border-color .2s,box-shadow .2s;appearance:none;-webkit-appearance:none}
+.ctl select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m3 5 4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.ctl select option{background:var(--bg2);color:var(--text)}
+.ctl input::placeholder{color:#5B6B85}
+.ctl input:focus,.ctl select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px rgba(59,130,246,.18)}
+.ctl:focus-within svg{stroke:var(--cyan)}
+.ctl input[readonly]{color:var(--cyan);border-style:dashed;cursor:default}
+.field.err input,.field.err select{border-color:var(--bad);box-shadow:0 0 0 4px rgba(239,68,68,.14)}
+.hint{color:var(--muted);font-size:12.5px;margin-top:6px}
+.msg{color:#FCA5A5;font-size:12.5px;margin-top:6px;font-weight:600}
+.submit-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.submit-row small{color:var(--muted);max-width:34ch;font-size:12.5px}
+.spin{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn.loading .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.result{position:sticky;top:92px;padding:30px;min-height:340px;display:flex;flex-direction:column;justify-content:center;transition:box-shadow .5s,border-color .5s}
+.result.yes{border-color:rgba(16,185,129,.5);box-shadow:0 0 0 1px rgba(16,185,129,.2),0 24px 70px -20px rgba(16,185,129,.45)}
+.result.no{border-color:rgba(239,68,68,.5);box-shadow:0 0 0 1px rgba(239,68,68,.2),0 24px 70px -20px rgba(239,68,68,.45)}
+.empty{text-align:left;color:var(--muted)}
+.empty h3{color:var(--text);font-size:21px;margin-bottom:10px}
+.out{animation:rise .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.badge{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;margin-bottom:20px}
+.yes .badge{background:rgba(16,185,129,.14);box-shadow:inset 0 0 0 2px var(--ok),0 0 34px rgba(16,185,129,.45)}
+.no .badge{background:rgba(239,68,68,.14);box-shadow:inset 0 0 0 2px var(--bad),0 0 34px rgba(239,68,68,.45)}
+.badge svg{width:38px;height:38px;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.yes .badge svg{stroke:var(--ok)}.no .badge svg{stroke:var(--bad)}
+.badge path{stroke-dasharray:60;stroke-dashoffset:60;animation:draw .7s .25s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.out h3{font-size:30px;margin-bottom:6px}
+.yes h3{color:#6EE7B7}.no h3{color:#FCA5A5}
+.kv{margin:18px 0;border-top:1px solid var(--line)}
+.kv div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.kv span{color:var(--muted)}.kv b{font-weight:600;text-align:right}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55}
+.errbox{color:#FCA5A5}.errbox h3{color:#FCA5A5;font-size:21px;margin-bottom:8px}
+
+/* insights */
+.ins-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;margin-top:44px}
+.chart-card{padding:30px}
+.chart-card h3,.facts h3{font-size:18px;margin-bottom:4px}
+.chart-box{position:relative;height:440px;margin-top:14px}
+.facts{padding:30px}
+.facts dl{margin-top:14px}
+.facts dl div{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.facts dt{color:var(--muted)}.facts dd{font-weight:700;font-family:var(--display);font-size:14.5px}
+.facts .note{margin-top:16px}
+
+/* how */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:44px;counter-reset:s}
+.step{padding:26px;position:relative}
+.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:38px;height:38px;border-radius:12px;font:700 16px var(--display);margin-bottom:18px;background:linear-gradient(135deg,rgba(59,130,246,.3),rgba(139,92,246,.3));box-shadow:inset 0 0 0 1px rgba(139,92,246,.5)}
+.step h3{font-size:17px;margin-bottom:8px}
+.step p{color:var(--muted);font-size:14.5px}
+
+/* about */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.about p{color:var(--muted);margin-bottom:14px}
+.callout{padding:26px;border-left:3px solid var(--warn);border-radius:6px 22px 22px 6px}
+.callout h3{font-size:17px;margin-bottom:8px}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--muted);font-size:13.5px}
+.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:980px){
+  .hero-grid,.predict-grid,.ins-grid,.about{grid-template-columns:1fr}
+  .stat-grid,.steps{grid-template-columns:1fr 1fr}
+  .result{position:static}
+  section{padding:72px 0}
+}
+@media (max-width:680px){
+  .wrap{padding:0 18px}
+  .nav-in{height:auto;padding:12px 0;flex-wrap:wrap}
+  .links{order:3;width:100%;overflow-x:auto;scrollbar-width:none}
+  .links a{white-space:nowrap}
+  .nav-cta{display:none}
+  .fields,.stat-grid,.steps{grid-template-columns:1fr}
+  form.glass{padding:22px}
+  .chart-box{height:380px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .badge path{stroke-dashoffset:0}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap nav-in">
+    <a href="#top" class="logo" aria-label="LoanIQ home"><i><svg viewBox="0 0 24 24"><path d="M12 3v6m0 0-6 5m6-5 6 5M6 14v7m12-7v7"/></svg></i>LoanIQ</a>
+    <div class="links" id="links">
+      <a href="#top" class="active">Dashboard</a>
+      <a href="#predict">Loan Prediction</a>
+      <a href="#insights">Model Insights</a>
+      <a href="#about">About</a>
+    </div>
+    <a href="#predict" class="btn nav-cta">Analyze loan</a>
+  </div>
+</nav>
+
+<main id="top">
+<header class="hero">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Smarter Loan Decisions with AI</h1>
+      <p class="lead">Enter an applicant's details and LoanIQ runs them through a decision tree trained on thousands of past loan applications to predict approval.</p>
+      <div class="hero-cta">
+        <a href="#predict" class="btn">Analyze Loan Application</a>
+        <a href="#insights" class="btn ghost">See what the model weighs</a>
+      </div>
+    </div>
+    {% if insights %}
+    <figure class="glass tree-card">
+      <svg id="tree" viewBox="0 0 520 350" role="img" aria-label="The first three splits of the trained decision tree, with an application travelling down to an outcome"></svg>
+      <figcaption>
+        <span>The first three splits of the trained model.</span>
+        <span><i class="dot yes"></i>Approved <i class="dot no" style="margin-left:10px"></i>Rejected</span>
+      </figcaption>
+    </figure>
+    {% endif %}
+  </div>
+</header>
+
+<section class="stats" aria-label="Model summary">
+  <div class="wrap stat-grid">
+    <div class="glass stat"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v6m0 0-6 5m6-5 6 5M6 14v7m12-7v7"/></svg></div><div><b>Decision Tree</b><span>Model algorithm</span></div></div>
+    <div class="glass stat"><div class="ic"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="14" y2="18"/></svg></div><div><b>{{ insights.facts.features if insights else '13' }}</b><span>Input features</span></div></div>
+    {% if insights %}
+    <div class="glass stat"><div class="ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></div><div><b>{{ '{:,}'.format(insights.facts.training_records) }}</b><span>Training records</span></div></div>
+    {% endif %}
+    <div class="glass stat"><div class="ic"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><b><i class="live {{ '' if model_ready else 'off' }}"></i>{{ 'Ready' if model_ready else 'Unavailable' }}</b><span>Prediction status</span></div></div>
+  </div>
+</section>
+
+<section id="predict">
+  <div class="wrap">
+    <h2>Loan application</h2>
+    <p class="lead">Fill in all 13 details the model uses. The loan-to-income ratio is calculated for you.</p>
+    <div class="predict-grid">
+      <form id="form" class="glass" novalidate autocomplete="off">
+        {% for g in groups %}
+        <fieldset>
+          <legend>{{ g.title }}</legend>
+          <div class="fields">
+          {% for f in g.fields %}
+            <div class="field" data-name="{{ f.name }}">
+              <label for="{{ f.name }}">{{ f.label }}</label>
+              <div class="ctl">
+                <svg viewBox="0 0 24 24" aria-hidden="true">{{ f.icon_svg|safe }}</svg>
+                {% if f.kind == 'select' %}
+                <select id="{{ f.name }}" name="{{ f.name }}" required>
+                  <option value="" disabled selected>Select an option</option>
+                  {% for text, code in f.options %}<option value="{{ code }}">{{ text }}</option>{% endfor %}
+                </select>
+                {% elif f.kind == 'computed' %}
+                <input id="{{ f.name }}" type="text" value="" placeholder="Fills in automatically" readonly tabindex="-1" aria-describedby="{{ f.name }}-h">
+                {% else %}
+                <input id="{{ f.name }}" name="{{ f.name }}" type="number" inputmode="{{ 'numeric' if f.kind == 'int' else 'decimal' }}" min="{{ f.min }}" max="{{ f.max }}" step="{{ f.step }}" placeholder="{{ f.placeholder }}" required aria-describedby="{{ f.name }}-h">
+                {% endif %}
+              </div>
+              <div class="hint" id="{{ f.name }}-h">{{ f.hint }}</div>
+              <div class="msg" role="alert" hidden></div>
+            </div>
+          {% endfor %}
+          </div>
+        </fieldset>
+        {% endfor %}
+        <div class="submit-row">
+          <button class="btn" id="go" type="submit" {{ '' if model_ready else 'disabled' }}><span class="spin"></span><span id="go-t">Predict loan decision</span></button>
+          <small>Your entries are sent to the model once and are not stored.</small>
+        </div>
+      </form>
+
+      <aside class="glass result" id="result" aria-live="polite">
+        <div class="empty">
+          <h3>Your result will appear here</h3>
+          <p>Complete the application and select <b>Predict loan decision</b> to see whether the model would approve or reject it.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+{% if insights %}
+<section id="insights">
+  <div class="wrap">
+    <h2>Model insights</h2>
+    <p class="lead">How the trained decision tree reaches its answers, read directly from the model file.</p>
+    <div class="ins-grid">
+      <div class="glass chart-card">
+        <h3>Feature importance</h3>
+        <p class="note">Share of the tree's total impurity reduction attributed to each input.</p>
+        <div class="chart-box"><canvas id="imp" role="img" aria-label="Bar chart of feature importance"></canvas></div>
+      </div>
+      <div class="glass facts">
+        <h3>Model details</h3>
+        <dl>
+          <div><dt>Algorithm</dt><dd>{{ insights.facts.algorithm }}</dd></div>
+          <div><dt>Split criterion</dt><dd>{{ insights.facts.criterion }}</dd></div>
+          <div><dt>Input features</dt><dd>{{ insights.facts.features }}</dd></div>
+          <div><dt>Output classes</dt><dd>0 rejected, 1 approved</dd></div>
+          <div><dt>Tree depth</dt><dd>{{ insights.facts.depth }}</dd></div>
+          <div><dt>Decision nodes</dt><dd>{{ '{:,}'.format(insights.facts.nodes) }}</dd></div>
+          <div><dt>Leaves</dt><dd>{{ '{:,}'.format(insights.facts.leaves) }}</dd></div>
+          <div><dt>Training records</dt><dd>{{ '{:,}'.format(insights.facts.training_records) }}</dd></div>
+          <div><dt>Approved in training</dt><dd>{{ approved_pct }}%</dd></div>
+        </dl>
+        <p class="note">The tree has no depth limit, so each leaf holds a single outcome. For that reason LoanIQ reports the predicted class only and does not show a confidence score.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="glass step"><h3>Enter applicant details</h3><p>Provide the 13 inputs: personal, loan and credit information.</p></div>
+      <div class="glass step"><h3>Submit the application</h3><p>Your entries are checked, then converted into the numeric format the model expects.</p></div>
+      <div class="glass step"><h3>The model analyzes it</h3><p>The decision tree follows a chain of yes/no splits from the first question down to a final outcome.</p></div>
+      <div class="glass step"><h3>See the predicted result</h3><p>LoanIQ shows whether the model predicts approval or rejection.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap about">
+    <div>
+      <h2>About LoanIQ</h2>
+      <p>LoanIQ is a demonstration of a loan approval classifier. A scikit-learn decision tree, trained on historical loan applications, makes every prediction. Nothing is hardcoded or simulated.</p>
+      <p>Results reflect patterns in the training data, including its biases and gaps, so treat them as a model output to study, not as a verdict on a person.</p>
+    </div>
+    <div class="glass callout">
+      <h3>Not a lending decision</h3>
+      <p class="note" style="font-size:14.5px">A LoanIQ result is a model prediction only. It is not credit advice and does not reflect how any lender would actually assess an application.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap foot"><span>LoanIQ &middot; Loan approval prediction with a decision tree</span><span>Predictions are not actual lending decisions.</span></div></footer>
+
+{% if insights %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>{% endif %}
+<script>
+const INSIGHTS = {{ insights|tojson }};
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+
+/* ---------- hero: live slice of the real tree ---------- */
+(function () {
+  if (!INSIGHTS) return;
+  const svg = $('#tree'), NS = 'http://www.w3.org/2000/svg';
+  const W = 520, levelY = [34, 124, 214, 312];
+  const byId = {}, kids = {};
+  INSIGHTS.tree.forEach(n => { byId[n.id] = n; (kids[n.parent] = kids[n.parent] || []).push(n.id); });
+  const order = {};
+  INSIGHTS.tree.forEach(n => { (order[n.depth] = order[n.depth] || []).push(n.id); });
+  Object.entries(order).forEach(([d, ids]) => ids.forEach((id, i) => {
+    byId[id].x = (i + .5) * W / ids.length; byId[id].y = levelY[d];
+  }));
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+  INSIGHTS.tree.forEach(n => {
+    if (n.parent < 0) return; const p = byId[n.parent], my = (p.y + n.y) / 2;
+    n.edge = el('path', { class: 'edge', d: `M${p.x} ${p.y + 15} C${p.x} ${my},${n.x} ${my},${n.x} ${n.y - (n.terminal ? 9 : 15)}` });
+  });
+  INSIGHTS.tree.forEach(n => {
+    if (n.terminal) {
+      n.g = el('g', { class: 'leaf ' + (n.approved ? 'yes' : 'no') });
+      el('circle', { cx: n.x, cy: n.y, r: 9 }, n.g);
+    } else {
+      const w = n.depth === 2 ? 104 : 124;
+      n.g = el('g', { class: 'node' });
+      el('rect', { x: n.x - w / 2, y: n.y - 15, width: w, height: 30, rx: 10 }, n.g);
+      el('text', { x: n.x, y: n.y }, n.g).textContent = n.label;
+    }
+  });
+  const clear = () => INSIGHTS.tree.forEach(n => { n.g.classList.remove('on'); n.edge && n.edge.classList.remove('on'); });
+  const light = n => { n.g.classList.add('on'); n.edge && n.edge.classList.add('on'); };
+  function run() {
+    clear(); let cur = byId[0], step = 0; light(cur);
+    const t = setInterval(() => {
+      if (cur.terminal) { clearInterval(t); setTimeout(run, 2200); return; }
+      cur = byId[kids[cur.id][Math.random() < .5 ? 0 : 1]]; light(cur);
+    }, 650);
+  }
+  if (reduceMotion) { let c = byId[0]; light(c); while (!c.terminal) { c = byId[kids[c.id][0]]; light(c); } } else run();
+})();
+
+/* ---------- nav highlight ---------- */
+(function () {
+  const links = [...document.querySelectorAll('#links a')];
+  const map = { top: 0, predict: 1, insights: 2, about: 3 };
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return; const i = map[e.target.id];
+    links.forEach((a, k) => a.classList.toggle('active', k === i));
+  }), { rootMargin: '-45% 0px -50% 0px' });
+  Object.keys(map).forEach(id => { const s = document.getElementById(id); s && io.observe(s); });
+})();
+
+/* ---------- chart ---------- */
+(function () {
+  if (!INSIGHTS || typeof Chart === 'undefined') return;
+  const cv = $('#imp'), ctx = cv.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 600, 0);
+  g.addColorStop(0, '#3B82F6'); g.addColorStop(1, '#22D3EE');
+  Chart.defaults.font.family = "'Manrope',sans-serif"; Chart.defaults.color = '#94A3B8';
+  new Chart(cv, {
+    type: 'bar',
+    data: { labels: INSIGHTS.importances.map(d => d.label),
+      datasets: [{ data: INSIGHTS.importances.map(d => +(d.value * 100).toFixed(2)), backgroundColor: g, borderRadius: 6, borderSkipped: false, barThickness: 18 }] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, animation: reduceMotion ? false : { duration: 1100, easing: 'easeOutQuart' },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#101A2E', borderColor: 'rgba(148,163,184,.25)', borderWidth: 1, padding: 12, callbacks: { label: c => ` ${c.parsed.x}% of total importance` } } },
+      scales: { x: { grid: { color: 'rgba(148,163,184,.1)' }, ticks: { callback: v => v + '%' }, border: { display: false } },
+                y: { grid: { display: false }, ticks: { color: '#F8FAFC' }, border: { display: false } } } }
+  });
+})();
+
+/* ---------- form ---------- */
+const form = $('#form'), box = $('#result'), btn = $('#go'), pct = $('#loan_percent_income');
+const fmt = n => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+
+function updatePct() {
+  const a = parseFloat(form.loan_amnt.value), i = parseFloat(form.person_income.value);
+  pct.value = a > 0 && i > 0 ? (Math.round(a / i * 100) / 100).toFixed(2) + ' (' + Math.round(a / i * 100) + '% of income)' : '';
+}
+['loan_amnt', 'person_income'].forEach(n => form[n].addEventListener('input', updatePct));
+
+function setErr(name, text) {
+  const f = $(`.field[data-name="${name}"]`); if (!f) return;
+  const m = $('.msg', f); f.classList.toggle('err', !!text); m.hidden = !text; m.textContent = text || '';
+}
+function clientValidate() {
+  let first = null, bad = false;
+  [...form.elements].forEach(el => {
+    if (!el.name) return; let msg = '';
+    if (el.validity.valueMissing) msg = 'This field is required.';
+    else if (el.validity.rangeUnderflow || el.validity.rangeOverflow) msg = `Enter a value between ${fmt(+el.min)} and ${fmt(+el.max)}.`;
+    else if (el.type === 'number' && el.dataset.int !== undefined && !Number.isInteger(+el.value)) msg = 'Enter a whole number.';
+    setErr(el.name, msg); if (msg) { bad = true; first = first || el; }
+  });
+  if (first) first.focus();
+  return !bad;
+}
+form.addEventListener('input', e => e.target.name && setErr(e.target.name, ''));
+
+const ICON_YES = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_NO = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function showError(title, list) {
+  box.className = 'glass result';
+  box.innerHTML = `<div class="errbox out"><h3>${title}</h3>${list ? `<p class="note">${list}</p>` : ''}</div>`;
+}
+function showResult(r) {
+  const yes = r.approved;
+  box.className = 'glass result ' + (yes ? 'yes' : 'no');
+  box.innerHTML = `<div class="out">
+    <div class="badge">${yes ? ICON_YES : ICON_NO}</div>
+    <h3>${r.label}</h3>
+    <p class="note" style="font-size:14.5px">${yes ? 'The model predicts this application would be approved.' : 'The model predicts this application would be rejected.'}</p>
+    <div class="kv">
+      <div><span>Model prediction</span><b>Class ${r.prediction} (${yes ? 'approved' : 'rejected'})</b></div>
+      <div><span>Loan as share of income</span><b>${Math.round(r.loan_percent_income * 100)}%</b></div>
+      <div><span>Splits followed in the tree</span><b>${r.path_steps}</b></div>
+    </div>
+    <p class="note">This is a model prediction based on patterns in past data. It is not an actual lending decision.</p></div>`;
+  if (window.innerWidth < 980) box.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+}
+
+form.querySelectorAll('input[type=number]').forEach(i => { if (i.step === '1' && i.id !== 'person_income' && i.id !== 'loan_amnt' && i.id !== 'cb_person_cred_hist_length') i.dataset.int = ''; });
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!clientValidate()) return;
+  btn.disabled = true; btn.classList.add('loading'); $('#go-t').textContent = 'Analyzing…';
+  try {
+    const res = await fetch('/predict', { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.result) { showResult(data.result); }
+    else {
+      if (data.errors) Object.entries(data.errors).forEach(([k, v]) => setErr(k, v));
+      showError(data.error || 'Something went wrong. Please try again.', data.errors ? 'The fields marked in red need attention.' : '');
+    }
+  } catch {
+    showError('Couldn\'t reach the server', 'Check your connection and try again.');
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading'); $('#go-t').textContent = 'Predict loan decision';
+  }
+});
+</script>
+</body>
+</html>
 
